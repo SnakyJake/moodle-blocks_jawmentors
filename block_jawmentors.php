@@ -46,8 +46,7 @@ class block_jawmentors extends block_base {
     }
 
     function get_content() {
-        global $CFG, $USER, $DB, $OUTPUT, $PAGE;
-
+        global $CFG, $USER, $DB, $OUTPUT,$PAGE;
 
         if ($this->content !== NULL) {
             return $this->content;
@@ -63,8 +62,9 @@ class block_jawmentors extends block_base {
         }
 
         // get all the mentors, i.e. users you have a direct assignment to
-        $allusernames = get_all_user_name_fields(true, 'u');
-        if ($usercontexts = $DB->get_records_sql("SELECT ra.userid, ra.userid, u.lastaccess, $allusernames
+        //$allusernames = get_all_user_name_fields(true, 'u');
+		$allusernamefields = \core_user\fields::for_name()->get_sql('u')->selects;
+        if ($usercontexts = $DB->get_records_sql("SELECT ra.userid, u.lastaccess $allusernamefields
                                                     FROM {context} c, {role_assignments} ra, {user} u
                                                    WHERE c.contextlevel = ?
                                                          AND c.instanceid = ?
@@ -79,7 +79,7 @@ class block_jawmentors extends block_base {
             foreach ($usercontexts as $usercontext) {
 				$online = $usercontext->lastaccess > $timefrom;
 
-                $this->content->text .= '<li style="';
+                $this->content->text .= '<li style="clear:both;';
 				if($online) {
 					$this->content->text .= "list-style-image:url('".$OUTPUT->pix_url('s/smiley')."');".'" title="online"';
 				} else {
@@ -88,13 +88,14 @@ class block_jawmentors extends block_base {
 				}
 				$this->content->text .= '><a href="'.$CFG->wwwroot.'/user/view.php?id='.$usercontext->userid.'&amp;course='.SITEID.'">'.fullname($usercontext).'</a>';
 //				$this->content->text .= '><a href="'.$CFG->wwwroot.'/message/index.php?id='.$usercontext->userid.'">'.fullname($usercontext).'</a>';
-                $this->content->text .= ' <a class="jawmentors-message-icon" role="button" data-conversationid="0" data-userid="'.$usercontext->userid.'" class="btn" href="https://edu.jaw-moodle.de/message/index.php?id='.$usercontext->userid.'"><span><i class="icon fa fa-comment fa-fw iconsmall" title="Mitteilung" aria-label="Mitteilung"></i></span></a>';
+                $this->content->text .= ' <a class="jawmentors-message-icon float-right" role="button" data-conversationid="0" data-userid="'.$usercontext->userid.'" class="btn" href="https://edu.jaw-moodle.de/message/index.php?id='.$usercontext->userid.'"><span><i class="icon fa fa-comment fa-fw iconsmall" title="Mitteilung" aria-label="Mitteilung"></i></span></a>';
 				$this->content->text .= '</li>';
             }
             $this->content->text .= '</ul>';
         }
 
         $this->content->footer = '';
+		
         $PAGE->requires->js_amd_inline(
             "require(['jquery', 'core/custom_interaction_events', 'core_message/message_drawer_helper'],
     function($, CustomEvents, MessageDrawerHelper) {
