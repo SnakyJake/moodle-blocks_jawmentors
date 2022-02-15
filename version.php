@@ -26,5 +26,5 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2022021600;        // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 20211210;        // Requires this Moodle version
+$plugin->requires  = 2021051700;        // Requires this Moodle version
 $plugin->component = 'block_jawmentors';   // Full name of the plugin (used for diagnostics)
