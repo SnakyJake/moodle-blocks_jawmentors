@@ -81,10 +81,9 @@ class block_jawmentors extends block_base {
 
                 $this->content->text .= '<li style="clear:both;';
 				if($online) {
-					$this->content->text .= "list-style-image:url('".$OUTPUT->pix_url('s/smiley')."');".'" title="online"';
+					$this->content->text .= "list-style-image:url('".$OUTPUT->image_url('s/smiley')."');".'" title="online"';
 				} else {
-					$this->content->text .= "list-style-image:url('".$OUTPUT->pix_url('t/stop')."');".'" title="offline"';
-//					$this->content->text .= 'list-style-type:\'-   \';" title="offline"';
+					$this->content->text .= "list-style-image:url('".$OUTPUT->image_url('t/stop')."');".'" title="offline"';
 				}
 				$this->content->text .= '><a href="'.$CFG->wwwroot.'/user/view.php?id='.$usercontext->userid.'&amp;course='.SITEID.'">'.fullname($usercontext).'</a>';
 //				$this->content->text .= '><a href="'.$CFG->wwwroot.'/message/index.php?id='.$usercontext->userid.'">'.fullname($usercontext).'</a>';
