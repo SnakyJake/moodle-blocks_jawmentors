@@ -25,8 +25,8 @@
 
 $string['configtitle'] = 'JAW Mentors block title';
 $string['configtitleblankhides'] = 'JAW Mentors block title (no title if blank)';
-$string['mentors:addinstance'] = 'Add a new JAW mentors block';
-$string['mentors:myaddinstance'] = 'Add a new JAW mentors block to Dashboard';
+$string['jawmentors:addinstance'] = 'Add a new JAW mentors block';
+$string['jawmentors:myaddinstance'] = 'Add a new JAW mentors block to Dashboard';
 $string['newmentorsblock'] = '(new JAW Mentors block)';
 $string['pluginname'] = 'JAW Mentors';
 $string['privacy:metadata'] = 'The JAW Mentors block only shows data stored in other locations.';
