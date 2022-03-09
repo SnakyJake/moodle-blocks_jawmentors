@@ -22,6 +22,8 @@
  * @copyright  2021 onwards Jakob Heinemann (http://www.jakobheinemann.de)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+ 
+ require_once($CFG->dirroot . '/local/keyuser/locallib.php');
 
 class block_jawmentors extends block_base {
 
@@ -46,8 +48,7 @@ class block_jawmentors extends block_base {
     }
 
     function get_content() {
-        global $CFG, $USER, $DB, $OUTPUT, $PAGE;
-
+        global $CFG, $USER, $DB, $OUTPUT,$PAGE;
 
         if ($this->content !== NULL) {
             return $this->content;
@@ -61,40 +62,60 @@ class block_jawmentors extends block_base {
         if(!$visible_roleid = get_config('block_jawmentors', 'visible_roleid')){
             $visible_roleid = 40;
         }
+		
+		$keyusers = get_keyusers(true);
+        $keyuser_ids = array_map(
+            function($var){
+                return $var->id;
+            },$keyusers);
+        
+		if(!empty($keyuser_ids)){
+			list($insql, $params) = $DB->get_in_or_equal($keyuser_ids, SQL_PARAMS_NAMED, 'keyuserid', false);
+		} else {
+			$insql = "";
+			$params = [];
+		}
+
+        $params["ctxlvl"] = CONTEXT_USER;
+        $params["userid"] = $USER->id;
+        $params["roleid"] = $visible_roleid;
 
         // get all the mentors, i.e. users you have a direct assignment to
-        $allusernames = get_all_user_name_fields(true, 'u');
-        if ($usercontexts = $DB->get_records_sql("SELECT ra.userid, ra.userid, u.lastaccess, $allusernames
+        //$allusernames = get_all_user_name_fields(true, 'u');
+		$allusernamefields = \core_user\fields::for_name()->get_sql('u')->selects;
+        $usercontexts = $DB->get_records_sql("SELECT ra.userid as id, u.lastaccess $allusernamefields
                                                     FROM {context} c, {role_assignments} ra, {user} u
-                                                   WHERE c.contextlevel = ?
-                                                         AND c.instanceid = ?
+                                                   WHERE c.contextlevel = :ctxlvl
+                                                         AND c.instanceid = :userid
 														 AND c.instanceid != u.id
                                                          AND c.id = ra.contextid
-                                                         AND ra.roleid = ?
+                                                         AND ra.roleid = :roleid
                                                          AND ra.userid = u.id
                                                          AND u.suspended = 0
-                                                   ORDER BY u.lastname", array(CONTEXT_USER, $USER->id, $visible_roleid))) {
-
+                                                         AND u.id ".$insql." 
+                                                   ORDER BY u.lastname", $params);
+		$usercontexts = array_merge($usercontexts, $keyusers);
+		if(!empty($usercontexts)){
             $this->content->text = '<ul>';
             foreach ($usercontexts as $usercontext) {
 				$online = $usercontext->lastaccess > $timefrom;
 
-                $this->content->text .= '<li style="';
+                $this->content->text .= '<li style="clear:both;';
 				if($online) {
-					$this->content->text .= "list-style-image:url('".$OUTPUT->pix_url('s/smiley')."');".'" title="online"';
+					$this->content->text .= "list-style-image:url('".$OUTPUT->image_url('s/smiley')."');".'" title="online"';
 				} else {
-					$this->content->text .= "list-style-image:url('".$OUTPUT->pix_url('t/stop')."');".'" title="offline"';
-//					$this->content->text .= 'list-style-type:\'-   \';" title="offline"';
+					$this->content->text .= "list-style-image:url('".$OUTPUT->image_url('t/stop')."');".'" title="offline"';
 				}
-				$this->content->text .= '><a href="'.$CFG->wwwroot.'/user/view.php?id='.$usercontext->userid.'&amp;course='.SITEID.'">'.fullname($usercontext).'</a>';
-//				$this->content->text .= '><a href="'.$CFG->wwwroot.'/message/index.php?id='.$usercontext->userid.'">'.fullname($usercontext).'</a>';
-                $this->content->text .= ' <a class="jawmentors-message-icon" role="button" data-conversationid="0" data-userid="'.$usercontext->userid.'" class="btn" href="https://edu.jaw-moodle.de/message/index.php?id='.$usercontext->userid.'"><span><i class="icon fa fa-comment fa-fw iconsmall" title="Mitteilung" aria-label="Mitteilung"></i></span></a>';
+				$this->content->text .= '><a href="'.$CFG->wwwroot.'/user/view.php?id='.$usercontext->id.'&amp;course='.SITEID.'">'.fullname($usercontext).'</a>';
+//				$this->content->text .= '><a href="'.$CFG->wwwroot.'/message/index.php?id='.$usercontext->id.'">'.fullname($usercontext).'</a>';
+                $this->content->text .= ' <a class="jawmentors-message-icon float-right" role="button" data-conversationid="0" data-userid="'.$usercontext->id.'" class="btn" href="https://edu.jaw-moodle.de/message/index.php?id='.$usercontext->id.'"><span><i class="icon fa fa-comment fa-fw iconsmall" title="Mitteilung" aria-label="Mitteilung"></i></span></a>';
 				$this->content->text .= '</li>';
             }
             $this->content->text .= '</ul>';
         }
 
         $this->content->footer = '';
+		
         $PAGE->requires->js_amd_inline(
             "require(['jquery', 'core/custom_interaction_events', 'core_message/message_drawer_helper'],
     function($, CustomEvents, MessageDrawerHelper) {

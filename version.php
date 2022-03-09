@@ -25,6 +25,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2021081204;        // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2020060900;        // Requires this Moodle version
+$plugin->version   = 2022030900;        // The current plugin version (Date: YYYYMMDDXX)
+$plugin->requires  = 2021051700;        // Requires this Moodle version
 $plugin->component = 'block_jawmentors';   // Full name of the plugin (used for diagnostics)
+$plugin->dependencies = array(
+    'local_keyuser' => 2022030900,   // Keyuser-Plugin must be installed.
+);
+
